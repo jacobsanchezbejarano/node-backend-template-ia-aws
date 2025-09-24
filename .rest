@@ -1,0 +1,260 @@
+### Configuración de Variables de Entorno (ajusta según tu setup)
+@baseUrl = http://localhost:5000/api
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OGFiZTIyMDc0NDU5ZGEzOTgzMjNkMyIsImlhdCI6MTc1MzkyMzEzMiwiZXhwIjoxNzUzOTI2NzMyfQ.9Lfs5JKPeM5cZ7hb34H7qHfD31nsyYYizAQ3YRRqo_0
+@jefeCircunscripcionToken = your_jefe_circunscripcion_jwt_token_here
+@jefeRecintoToken = your_jefe_recinto_jwt_token_here
+@delegadoMesaToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OGFiZWQ2MDc0NDU5ZGEzOTgzMjU3ZSIsImlhdCI6MTc1MzkyMzI5MCwiZXhwIjoxNzUzOTI2ODkwfQ.jjHO5g-Rv8LnJqVA5yWVhb-CwiFMQMeuYdRwUSojyEI
+
+### Autenticación y Registro
+
+# @name Register Admin
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "adminuser",
+  "password": "password123",
+  "role": "admin",
+  "nombre": "Admin",
+  "apellido": "System"
+}
+
+###
+# @name Login Admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "adminuser",
+  "password": "password123"
+}
+
+###
+# @name Register Jefe Circunscripción
+# Necesitas un circunscripcionId válido de tu data
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "jefecir",
+  "password": "password123",
+  "role": "jefe_circunscripcion",
+  "nombre": "Jefe",
+  "apellido": "Circunscripcion",
+  "circunscripcionId": 1 // Reemplaza con un ID de circunscripción real
+}
+
+###
+# @name Login Jefe Circunscripción
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "jefecir",
+  "password": "password123"
+}
+
+###
+# @name Register Jefe Recinto
+# Necesitas un recintoId y un idLoc válidos de tu data
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "jeferecinto",
+  "password": "password123",
+  "role": "jefe_recinto",
+  "nombre": "Jefe",
+  "apellido": "Recinto",
+  "circunscripcionId": 1, // Circunscripción del recinto
+  "recintoId": 101,       // ID del recinto (Reci)
+  "idLoc": 1234           // ID de la localidad (IdLoc)
+}
+
+###
+# @name Login Jefe Recinto
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "jeferecinto",
+  "password": "password123"
+}
+
+###
+# @name Register Delegado Mesa
+# Necesitas un recintoId, idLoc y mesaNumero válidos de tu data
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "delegado1",
+  "password": "password123",
+  "role": "delegado_mesa",
+  "nombre": "Delegado",
+  "apellido": "Mesa",
+  "circunscripcionId": 1,
+  "recintoId": 101,
+  "idLoc": 1234,
+  "mesaNumero": 5
+}
+
+###
+# @name Login Delegado Mesa
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "delegado1",
+  "password": "password123"
+}
+
+### Autenticación y Logout
+
+# @name Logout User (requiere token válido)
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{adminToken}}
+
+### Obtener Recintos (Mapa)
+
+# @name Get Recintos - Admin (debe ver todo)
+GET {{baseUrl}}/recintos/mapa
+Authorization: Bearer {{adminToken}}
+
+###
+# @name Get Recintos - Jefe Circunscripción (solo su circunscripción)
+GET {{baseUrl}}/recintos/mapa
+Authorization: Bearer {{jefeCircunscripcionToken}}
+
+###
+# @name Get Recintos - Jefe Recinto (solo su recinto)
+GET {{baseUrl}}/recintos/mapa
+Authorization: Bearer {{jefeRecintoToken}}
+
+###
+# @name Get Recintos - Delegado Mesa (solo su recinto)
+GET {{baseUrl}}/recintos/mapa
+Authorization: Bearer {{delegadoMesaToken}}
+
+### Obtener Detalles de Recinto
+
+# @name Get Recinto Details - Admin (ej. Recinto 101, IdLoc 1234)
+GET {{baseUrl}}/recintos/101/1234
+Authorization: Bearer {{adminToken}}
+
+###
+# @name Get Recinto Details - Jefe Recinto (su propio recinto)
+GET {{baseUrl}}/recintos/101/1234
+Authorization: Bearer {{jefeRecintoToken}}
+
+### Obtener Mesas por Recinto
+
+# @name Get Mesas by Recinto - Admin (ej. Recinto 101, IdLoc 1234)
+GET {{baseUrl}}/mesas/101/1234
+Authorization: Bearer {{adminToken}}
+
+###
+# @name Get Mesas by Recinto - Jefe Recinto (sus propias mesas)
+GET {{baseUrl}}/mesas/101/1234
+Authorization: Bearer {{jefeRecintoToken}}
+
+### Asignar Delegado a Mesa (Solo Admin y Jefe Recinto)
+
+# @name Assign Delegado to Mesa - Admin
+# Necesitas el _id de MongoDB de una mesa (obtenlo de la respuesta de Get Mesas)
+# Necesitas el _id de MongoDB del usuario delegado (obtenlo de la respuesta de Login Delegado Mesa)
+PUT {{baseUrl}}/mesas/assign-delegate/60d5ec49f1b2c3a4e5f6d7c8
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "delegadoUserId": "60d5ec49f1b2c3a4e5f6d7c9"
+}
+
+### Subir Acta (Solo Delegado de Mesa)
+
+# @name Upload Acta - Delegado Mesa
+POST {{baseUrl}}/actas
+Content-Type: application/json
+Authorization: Bearer {{delegadoMesaToken}}
+
+{
+  "recintoId": 101,
+  "idLoc": 1234,
+  "mesaNumero": 5,
+  "urlFotoActa": "https://example.com/acta_mesa_5_recinto_101.jpg"
+}
+
+### Obtener Actas
+
+# @name Get Actas - Admin (todas las actas)
+GET {{baseUrl}}/actas
+Authorization: Bearer {{adminToken}}
+
+###
+# @name Get Actas - Jefe Circunscripción (actas de su circunscripción)
+GET {{baseUrl}}/actas
+Authorization: Bearer {{jefeCircunscripcionToken}}
+
+###
+# @name Get Actas - Jefe Recinto (actas de su recinto)
+GET {{baseUrl}}/actas
+Authorization: Bearer {{jefeRecintoToken}}
+
+###
+# @name Get Actas - Delegado Mesa (solo su acta)
+GET {{baseUrl}}/actas
+Authorization: Bearer {{delegadoMesaToken}}
+
+### Actualizar Estado de Acta (Admin, Jefes)
+
+# @name Update Acta Status - Admin
+# Necesitas el _id de MongoDB del acta (obtenlo de la respuesta de Get Actas)
+PUT {{baseUrl}}/actas/60d5ec49f1b2c3a4e5f6d7d0/status
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "estadoRevision": "revisada"
+}
+
+###
+# @name Update Acta Status - Jefe Recinto (su propia acta de recinto)
+# Asegúrate de que el acta pertenezca a su recinto
+PUT {{baseUrl}}/actas/60d5ec49f1b2c3a4e5f6d7d1/status
+Content-Type: application/json
+Authorization: Bearer {{jefeRecintoToken}}
+
+{
+  "estadoRevision": "discrepancia"
+}
+
+### Gestión de Usuarios (Solo Admin)
+
+# @name Get All Users - Admin
+GET {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+
+###
+# @name Get User by ID - Admin (ej. ID de un delegado)
+# Necesitas un _id de usuario válido
+GET {{baseUrl}}/users/60d5ec49f1b2c3a4e5f6d7c9
+Authorization: Bearer {{adminToken}}
+
+###
+# @name Update User Profile - Admin (ej. Cambiar rol de un usuario)
+# Necesitas un _id de usuario válido
+PUT {{baseUrl}}/users/60d5ec49f1b2c3a4e5f6d7c9
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "role": "jefe_distrito",
+  "distritoId": 5
+}
+
+###
+# @name Delete User - Admin
+# Necesitas un _id de usuario válido
+DELETE {{baseUrl}}/users/60d5ec49f1b2c3a4e5f6d7d2
+Authorization: Bearer {{adminToken}}
